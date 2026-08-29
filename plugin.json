@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "android-project-initial-setup",
+  "version": "1.0.0",
+  "description": "Scaffolds a new production-ready Android project from scratch after interviewing you for the app basics. Lets you choose MVVM-only (small projects) or Clean Architecture with MVVM (larger apps), and asks whether you need local persistence (Room), a remote API (Retrofit), user settings (DataStore), and where work will be tracked. Follows Google's official architecture guidance with Jetpack Compose, Hilt, and an offline-first data layer.",
+  "author": {
+    "name": "Sarath Satheesh"
+  },
+  "keywords": [
+    "android",
+    "android project",
+    "new android app",
+    "android setup",
+    "initial setup",
+    "scaffold",
+    "bootstrap",
+    "project template",
+    "kotlin",
+    "jetpack compose",
+    "compose",
+    "gradle",
+    "version catalog",
+    "convention plugins",
+    "hilt",
+    "room",
+    "multi-module",
+    "modularization",
+    "android architecture",
+    "mvvm",
+    "clean architecture",
+    "viewmodel",
+    "offline-first"
+  ]
+}

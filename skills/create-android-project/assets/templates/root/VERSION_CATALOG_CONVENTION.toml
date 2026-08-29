@@ -1,0 +1,10 @@
+
+# Convention plugins defined in build-logic/convention
+{{PREFIX}}-android-application = { id = "{{PREFIX}}.android.application", version = "unspecified" }
+{{PREFIX}}-android-application-compose = { id = "{{PREFIX}}.android.application.compose", version = "unspecified" }
+{{PREFIX}}-android-library = { id = "{{PREFIX}}.android.library", version = "unspecified" }
+{{PREFIX}}-android-library-compose = { id = "{{PREFIX}}.android.library.compose", version = "unspecified" }
+{{PREFIX}}-android-feature = { id = "{{PREFIX}}.android.feature", version = "unspecified" }
+{{PREFIX}}-android-room = { id = "{{PREFIX}}.android.room", version = "unspecified" }
+{{PREFIX}}-hilt = { id = "{{PREFIX}}.hilt", version = "unspecified" }
+{{PREFIX}}-jvm-library = { id = "{{PREFIX}}.jvm.library", version = "unspecified" }

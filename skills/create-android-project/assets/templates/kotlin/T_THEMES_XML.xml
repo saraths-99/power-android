@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Compose owns the real theming. This platform theme only styles the window
+      before the first frame is composed.
+    -->
+    <style name="Theme.{{APP_CLASS}}" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

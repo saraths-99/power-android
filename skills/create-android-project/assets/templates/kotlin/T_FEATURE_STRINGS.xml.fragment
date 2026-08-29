@@ -1,0 +1,4 @@
+    <string name="feature_{{FEATURE}}_title">{{FEATURE_CLASS}}</string>
+    <string name="feature_{{FEATURE}}_refresh">Refresh</string>
+    <string name="feature_{{FEATURE}}_retry">Retry</string>
+    <string name="feature_{{FEATURE}}_empty">Nothing here yet. Pull in some data to get started.</string>
