@@ -67,7 +67,17 @@ skills/create-android-project/
     ├── compose-patterns.md                   Compose conventions
     ├── gradle-setup.md                       Gradle and convention plugin details
     └── testing.md                            Testing approach
+
+skills/clean-mvvm-reference/
+└── SKILL.md                                  Copy-adaptable Clean Architecture + MVVM templates
 ```
+
+## Skills
+
+| Skill | Use when |
+|---|---|
+| `create-android-project` | Bootstrapping a brand-new Android project from scratch (interview + full scaffold, `mvvm` or `clean-mvvm`). |
+| `clean-mvvm-reference` | Adding a Clean Architecture + MVVM feature to an existing app, or grabbing the per-layer templates for the `View → ViewModel → UseCase → Repository interface → Repository impl → DataSource` flow — without running the scaffolder. |
 
 `scaffold_android_project.py` holds only orchestration: config validation,
 package-layout resolution, `{{TOKEN}}` substitution, and file assembly. Every
