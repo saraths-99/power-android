@@ -1,6 +1,6 @@
 ---
 name: create-android-project
-description: Interview the user for the basics of their app, help them pick between MVVM (single module) and Clean Architecture + MVVM (multi module), then scaffold the whole project from scratch with Compose, Hilt, an offline-first data layer, and a first feature wired end to end.
+description: Bootstrap a brand-new Android app from scratch — interview the user, pick between MVVM (single module) and Clean Architecture + MVVM (multi module), then scaffold the whole project with Compose, Hilt, an offline-first data layer, a first feature wired end to end, and matching steering docs. Use whenever someone wants to start a new Android app, scaffold/bootstrap an Android project or codebase "from scratch" or "from nothing", or asks which Android architecture to pick for a new app. Do NOT use this to add a feature to an existing project — see `references/modularization.md` for that instead.
 ---
 
 # Create an Android project from scratch
@@ -74,8 +74,9 @@ defaults if they are unsure:
 | Shared business rules, or a KMP move later | `clean-mvvm` |
 
 Say plainly that starting with `mvvm` is not a dead end: the generated README
-explains how to extract `domain` and `data` modules later. Do not oversell
-`clean-mvvm` for a small app; the extra indirection has a real cost.
+and the generated `.kiro/steering/module-architecture.md` both explain how to
+extract `domain` and `data` modules later (see that file's own §5/§6). Do not
+oversell `clean-mvvm` for a small app; the extra indirection has a real cost.
 
 ## Step 1: Establish the target directory
 
@@ -116,6 +117,8 @@ to accept everything except the required answers.
     module; in `mvvm` it is a `src/test` package. Either way it generates test
     *helpers*, not test cases.
 12. **Minify the release build (R8)** — default yes.
+13. **Java/Kotlin JVM target** — default `17` (matches AGP 8.x / Kotlin 1.9+ and
+    `compileSdk 34`). Mention only if asked.
 
 See `references/project-interview.md` for wording, follow-ups, and how to map
 vague answers onto these options.
@@ -136,7 +139,7 @@ packageName       applicationId/root    (required)
 projectDirName    kebab-case of appName
 rootProjectName   PascalCase of appName
 initialFeature    one lowercase word    (default: home)
-minSdk 24  compileSdk 34  targetSdk 34
+minSdk 24  compileSdk 34  targetSdk 34  javaVersion 17
 includeDatabase / includeNetwork / includeDatastore / includeTestUtilities / minifyRelease  (default true)
 gradleVersion     8.6
 ```
@@ -149,6 +152,8 @@ if any of these fail:
   `fun`, `val`, `var`, `is`, `in`, `data`, `enum`, `interface`, …).
 - `initialFeature` is a single lowercase word and not a reserved word.
 - `minSdk >= 21`, `targetSdk <= compileSdk`, `minSdk <= targetSdk`.
+- `javaVersion` is `11` or `17` (17 unless the user has a specific reason to pin
+  older).
 - `includeNetwork` implies `includeDatabase` — the generated repository is
   offline-first, so remote data needs a local source of truth. If the user wants
   network without a database, explain this and let them decide.
@@ -163,9 +168,11 @@ user's explicit go-ahead.
 
 Resolve every token once, then create each file. Work from these references:
 
-- `references/token-map.md` — how to compute every token (`PKG`, `APP_CLASS`,
-  `APP_ROOT`, `PREFIX`, `DB_NAME`, the ~20 architecture-specific `PKG_*` package
-  roots, and the conditional same-package import tokens).
+- `references/token-map.md` — how to compute every project-wide token (`PKG`,
+  `APP_CLASS`, `APP_ROOT`, `PREFIX`, `DB_NAME`, the ~20 architecture-specific
+  `PKG_*` package roots, and the conditional same-package import tokens). The
+  steering-file tokens below are a separate, self-contained set — they don't
+  need token-map.md.
 - `references/file-manifest.md` — which template maps to which destination path,
   and which files each `include*` flag adds or drops.
 - `references/project-structure.md` — the module graph and package layout you are
@@ -184,11 +191,8 @@ Procedure:
    each `build.gradle.kts`, the `settings.gradle.kts` includes, and the version
    catalog (append the convention section only for `clean-mvvm`). See
    project-structure.md §3 for exactly what each flag adds.
-4. **Emit the project's own steering** into `.kiro/steering/`
-   (`module-architecture.md`, `build-conventions.md`, `code-patterns.md`) from
-   `assets/steering/…`, rendered for the chosen architecture. These keep later
-   sessions in the new repository consistent with how it was scaffolded, so
-   mention them in the final report.
+4. **Emit the project's own steering** into `.kiro/steering/` — see the dedicated
+   subsection immediately below; it is exhaustive and self-contained.
 5. **Substitution is exhaustive.** After writing everything, search the output
    tree for `{{` and `}}`; there must be zero matches. A leftover token is a bug —
    fix it before continuing.
@@ -197,6 +201,52 @@ Because you are doing the substitution and the conditional wiring by hand, the
 output is only as correct as this pass. Double-check the two most common mistakes:
 a `package` line that does not match the file's directory, and a same-package
 import that should have been elided (token-map.md §3).
+
+### Emitting steering docs (`.kiro/steering/`)
+
+Three files go to `.kiro/steering/`, one architecture-selected pair plus one
+shared-but-conditional template:
+
+| Output file | Source template | Selection |
+|---|---|---|
+| `.kiro/steering/module-architecture.md` | `assets/steering/module-architecture-mvvm.md` or `-clean-mvvm.md` | pick by `architecture` |
+| `.kiro/steering/build-conventions.md` | `assets/steering/build-conventions-mvvm.md` or `-clean-mvvm.md` | pick by `architecture` |
+| `.kiro/steering/code-patterns.md` | `assets/steering/code-patterns.md` (single file, both architectures) | always this one, tokens differ by `architecture` |
+
+`module-architecture.md` and `build-conventions.md` only need the ordinary
+project-wide tokens (`PROJECT_NAME`, `PREFIX`, `PACKAGE_NAME`, `PACKAGE_PATH`,
+`APP_CLASS`, `FEATURE`, `COMPILE_SDK`, `TARGET_SDK`, `MIN_SDK`, `JAVA_VERSION`)
+from Step 4.1 — substitute and copy, no architecture branching needed inside the
+file itself since you already picked the right variant.
+
+`code-patterns.md` is the one file that's genuinely shared, so it carries extra
+tokens whose value depends on `architecture`. Resolve them from this table —
+don't guess, these are load-bearing for whether the generated code matches the
+generated `module-architecture.md`:
+
+| Token | `mvvm` value | `clean-mvvm` value |
+|---|---|---|
+| `{{COMPONENT_HOME}}` | `ui/components/` | `core:ui` |
+| `{{DATA_FLOW_DIAGRAM}}` | `Screen ⇄ ViewModel (StateFlow down, Action up) ⇄ Repository ⇄ local/remote source` | `Screen ⇄ ViewModel (StateFlow down, Action up) ⇄ UseCase ⇄ Repository (domain interface) ⇄ RepositoryImpl (data) ⇄ local/remote source` |
+| `{{VM_CONSTRUCTOR}}` | `    private val itemRepository: ItemRepository,\n` | `    private val observeItemsUseCase: ObserveItemsUseCase,\n` |
+| `{{VM_SOURCE}}` | `itemRepository.observeItems()` | `observeItemsUseCase()` |
+| `{{VM_DEPENDENCY_RULE}}` | "The ViewModel depends on the repository interface directly. There is no use-case layer at this module size — see `module-architecture.md` §2." | "The ViewModel depends only on use cases from `domain`, never on a repository. See `module-architecture.md` §2 and §4." |
+| `{{USE_CASE_SECTION}}` | *(empty string — section omitted)* | Short paragraph: "Use cases are the only thing a ViewModel is allowed to see. One class per business operation, invoked with `operator fun invoke` — see `module-architecture.md` §4 for the full pattern.\n\n" |
+| `{{REPO_INTERFACE_HOME}}` | `data/repository/` | `domain/repository/` |
+| `{{REPO_BINDING_HOME}}` | `di/` (an `@Provides` Hilt module, e.g. `di/AppModule.kt`) | `data/di/` (an `@Binds` Hilt module, e.g. `data/di/RepositoryModule.kt`) |
+| `{{USE_CASE_NAMING_ROW}}` | *(empty string — table row omitted)* | `\| Use case \| \`<Verb><Noun>UseCase\`, one class per operation \|\n` |
+| `{{TEST_DOUBLE_HOME}}` | `src/test/kotlin/{{PACKAGE_PATH}}/fake/` | `core:testing` |
+
+These ten tokens are independent of `references/token-map.md` — resolve them
+directly from the table above using the already-known `architecture` setting.
+`{{FEATURE}}`, `{{APP_CLASS}}`, `{{PROJECT_NAME}}`, and `{{PACKAGE_PATH}}` inside
+`code-patterns.md` reuse the ordinary project-wide token values.
+
+After substitution, `.kiro/steering/code-patterns.md` should read as one
+coherent document with no visible seam — the empty-string tokens (`mvvm` case)
+must not leave a blank line or a dangling table row behind; the non-empty ones
+(`clean-mvvm` case) must not collide with the numbered-heading sequence in the
+surrounding text.
 
 ## Step 5: Add launcher icons (vector, not PNG)
 
@@ -249,12 +299,14 @@ unset and there is no `local.properties`, Gradle fails with
 `SDK location not found`. That is an environment problem, not a scaffolding bug.
 
 For `clean-mvvm`, `./gradlew :domain:test` is a useful extra check: it proves the
-domain layer really is framework-free.
+domain layer really is framework-free — the same check `module-architecture.md`
+§7 documents for later in the project's life.
 
 If you cannot run a build in this environment, say so plainly. Do not call the
 project verified when it has only been generated. At minimum confirm:
 
-- no `{{TOKEN}}` remains anywhere in the tree (grep for `{{`)
+- no `{{TOKEN}}` remains anywhere in the tree (grep for `{{`), including inside
+  `.kiro/steering/`
 - `settings.gradle.kts` includes every module directory that exists
 - every `alias(libs.plugins.…)` and `libs.…` reference resolves in
   `gradle/libs.versions.toml`
@@ -269,6 +321,9 @@ Tell the user:
 - the absolute project path, the architecture, and the module list
 - which optional layers were included
 - whether the build ran, and the result
+- that `.kiro/steering/module-architecture.md`, `build-conventions.md`, and
+  `code-patterns.md` were generated for the chosen architecture, and that later
+  sessions in this repo will read them automatically
 - the placeholders they must replace: the vector launcher icon under
   `app/src/main/res/` (Step 5), brand colours in the design system, `BASE_URL` in
   the network layer, the sample `Item` model, and the missing release signing
@@ -286,6 +341,7 @@ the sample model to their real domain, or adding a second feature.
 | Token computation and substitution rules | `references/token-map.md` |
 | Which template goes where (per architecture/flags) | `references/file-manifest.md` |
 | Per-architecture module/package layout and inclusion matrix | `references/project-structure.md` |
+| Steering-doc templates and their conditional tokens | `assets/steering/` (see Step 4 table) |
 | What to do after scaffolding | `references/post-setup.md` |
 | Module boundaries and dependency rules | `references/modularization.md` |
 | UI / domain / data layer patterns | `references/architecture.md` |
@@ -295,7 +351,8 @@ the sample model to their real domain, or adding a second feature.
 
 ## Conventions the generated code follows
 
-Both architectures share these. Match them when you extend the project.
+Both architectures share these. Match them when you extend the project — they
+are also what `.kiro/steering/code-patterns.md` documents for later sessions.
 
 - **Unidirectional data flow.** Screens receive state and emit actions; only the
   ViewModel mutates state.
