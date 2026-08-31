@@ -67,7 +67,17 @@ skills/create-android-project/
     ├── compose-patterns.md                   Compose conventions
     ├── gradle-setup.md                       Gradle and convention plugin details
     └── testing.md                            Testing approach
+
+skills/single-module-mvvm-reference/
+└── SKILL.md                                  Copy-adaptable per-layer MVVM templates
 ```
+
+## Two skills
+
+| Skill | Use when |
+|---|---|
+| `create-android-project` | Bootstrapping a brand-new Android project from scratch (interview + full scaffold, `mvvm` or `clean-mvvm`). |
+| `single-module-mvvm-reference` | Adding an MVVM feature/screen to an existing single-module app, or you just need the per-layer code templates (model, repository, UiState, ViewModel, Compose route/content) without running the scaffolder. |
 
 `scaffold_android_project.py` holds only orchestration: config validation,
 package-layout resolution, `{{TOKEN}}` substitution, and file assembly. Every
