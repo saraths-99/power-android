@@ -16,7 +16,8 @@ Say these out loud rather than leaving them to be discovered.
 
 ## Not generated on purpose
 
-- **Gradle wrapper JAR** — a binary. See `scripts/init_gradle_wrapper.sh`.
+- **Gradle wrapper JAR** — a binary. Run `gradle wrapper --gradle-version <version>`
+  or open the project in Android Studio (see SKILL.md Step 6).
 - **Test cases** — only test *helpers*. Tests belong to the behaviour the user is
   about to write, not to a template.
 - **CI config** — depends on their provider.

@@ -40,10 +40,7 @@ To share it, push the directory to a public GitHub repository and install with
 ```
 plugin.json                                   Agent Plugins manifest
 skills/create-android-project/
-├── SKILL.md                                  Interview and scaffolding workflow
-├── scripts/
-│   ├── scaffold_android_project.py           Orchestration: config, validation, assembly
-│   └── init_gradle_wrapper.sh                Gradle wrapper helper
+├── SKILL.md                                  Interview + instruction-driven scaffolding workflow
 ├── assets/
 │   ├── steering/                              Steering emitted into each new project
 │   │   ├── module-architecture-mvvm.md
@@ -60,6 +57,9 @@ skills/create-android-project/
 │       └── readme/                             The two generated project READMEs
 └── references/
     ├── architecture-selection.md             Choosing between the two architectures
+    ├── token-map.md                          Token computation + substitution rules
+    ├── file-manifest.md                      Which template goes where, per arch/flags
+    ├── project-structure.md                  Per-architecture module/package layout + inclusion matrix
     ├── project-interview.md                  Interview wording and follow-ups
     ├── post-setup.md                         What to do after scaffolding
     ├── modularization.md                     Module boundaries and dependency rules
@@ -83,80 +83,64 @@ skills/clean-mvvm-reference/
 | `single-module-mvvm-reference` | Adding an MVVM feature/screen to an existing single-module app, or you just need the per-layer code templates (model, repository, UiState, ViewModel, Compose route/content) without running the scaffolder. |
 | `clean-mvvm-reference` | Adding a Clean Architecture + MVVM feature to an existing app, or grabbing the per-layer templates for the `View → ViewModel → UseCase → Repository interface → Repository impl → DataSource` flow — without running the scaffolder. |
 
-`scaffold_android_project.py` holds only orchestration: config validation,
-package-layout resolution, `{{TOKEN}}` substitution, and file assembly. Every
-piece of generated-language source — Kotlin, Gradle Kotlin DSL, XML, TOML,
-Markdown — lives as a real file under `assets/templates/`, loaded at runtime via
-`_load_template()`. This keeps the script itself short and keeps each template
-readable, lintable, and diffable as the language it actually is, rather than as
-an escaped Python string. The split is a pure refactor: given the same config,
-the generated project is byte-for-byte identical to what the all-in-one script
-produced.
+## How scaffolding works (no generator script)
 
-## Using the generator directly
+There is no generator script. The skill is **instruction-driven**: the agent
+follows `SKILL.md`, computes the project's tokens, and creates each file by
+copying the matching template from `assets/templates/` and substituting its
+`{{TOKEN}}` placeholders. Every piece of generated-language source — Kotlin,
+Gradle Kotlin DSL, XML, TOML, Markdown — lives as a real file under
+`assets/templates/`, readable and diffable as the language it actually is.
 
-The skill drives this for you, but it also works standalone.
+The agent works from three references:
 
-```bash
-cd skills/create-android-project
+- `references/token-map.md` — how to compute every token and the per-architecture
+  package map, plus the conditional same-package import rules.
+- `references/file-manifest.md` — which template maps to which destination, and
+  which files each `include*` flag adds or drops.
+- `references/project-structure.md` — the module graph and package layout.
 
-# See every option, with the architecture pre-filled
-python3 scripts/scaffold_android_project.py --print-config-template --architecture clean-mvvm
-python3 scripts/scaffold_android_project.py --print-config-template --architecture mvvm
+### Settings the agent resolves
 
-# Preview without writing
-python3 scripts/scaffold_android_project.py --config my-app.json --output-dir ~/projects --dry-run
+`architecture` (`mvvm` or `clean-mvvm`), `appName`, and `packageName` are required
+and have no default. Everything else defaults: `projectDirName` (kebab-case app
+name), `rootProjectName` (PascalCase app name), `initialFeature` (`home`),
+`minSdk` `24`, `compileSdk`/`targetSdk` `34`, `includeDatabase`/`includeNetwork`/
+`includeDatastore`/`includeTestUtilities`/`minifyRelease` (all `true`),
+`gradleVersion` `8.6`. `includeNetwork` requires `includeDatabase` (offline-first).
 
-# Generate
-python3 scripts/scaffold_android_project.py --config my-app.json --output-dir ~/projects
-```
+### Editing the output
 
-`architecture`, `appName` and `packageName` must be set explicitly. Everything
-else has a default. Unknown keys are rejected rather than ignored.
+To change what a scaffolded file looks like, edit the matching template under
+`assets/templates/` — for example
+`assets/templates/app-build/T_APP_BUILD_MVVM.gradle.kts`. It is real Gradle Kotlin
+DSL with `{{TOKEN}}` placeholders.
 
-### Editing the generated output
+### Tradeoffs of the instruction-driven approach
 
-To change what a generated file looks like, edit the matching file under
-`assets/templates/` — not the Python script. For example, to change the app
-module's `build.gradle.kts` for the `mvvm` architecture, edit
-`assets/templates/app-build/T_APP_BUILD_MVVM.gradle.kts` directly; it is real
-Gradle Kotlin DSL with `{{TOKEN}}` placeholders, not a Python string. The script
-only decides *which* templates get used and *what* the tokens resolve to.
+Removing the generator script removes the guarantees it enforced. The agent now
+performs these by hand, so treat the output as needing review:
 
-### Config keys
+- **No byte-for-byte determinism.** Two runs may differ; the script guaranteed
+  identical output for identical settings.
+- **No automated validation.** Package-name/reserved-word/SDK-ordering checks and
+  the network-requires-database rule are now instructions the agent must apply,
+  not code that enforces them.
+- **No `--dry-run` / `--force`.** The agent writes files directly; it must not
+  overwrite a non-empty directory without the user's go-ahead.
+- **Launcher icons are a vector-XML placeholder**, not generated PNG mipmaps.
 
-| Key | Default | Notes |
-|---|---|---|
-| `architecture` | — | `mvvm` or `clean-mvvm`. Required. |
-| `appName` | — | Display name. Required. Drives the class prefix. |
-| `packageName` | — | applicationId and root package. Required. |
-| `projectDirName` | kebab-case app name | Folder created under `--output-dir`. |
-| `rootProjectName` | PascalCase app name | `rootProject.name`, and the convention plugin prefix. |
-| `initialFeature` | `home` | One lowercase word. |
-| `minSdk` | `24` | 21 or higher. |
-| `compileSdk` / `targetSdk` | `34` | |
-| `includeDatabase` | `true` | Room. Off gives an in-memory repository. |
-| `includeNetwork` | `true` | Retrofit. Requires `includeDatabase`. |
-| `includeDatastore` | `true` | Preferences DataStore, plus theme settings wiring. |
-| `includeTestUtilities` | `true` | Test helpers, not test cases. |
-| `minifyRelease` | `true` | R8 on the release build. |
-| `gradleVersion` | `8.6` | Written to the wrapper properties. |
-
-Requires Python 3.8 or newer. No third-party Python packages.
+Always verify the result (SKILL.md Step 7): no leftover `{{TOKEN}}`, every
+`package` matches its directory, and — for `clean-mvvm` — `domain/` stays
+framework-free.
 
 ## The Gradle wrapper
 
-`gradle-wrapper.jar` is a binary, so it cannot be generated as text. The
-scaffolder writes `gradle/wrapper/gradle-wrapper.properties` and leaves the rest
-to you:
-
-```bash
-skills/create-android-project/scripts/init_gradle_wrapper.sh <project-dir>
-```
-
-The helper uses a local `gradle` install. If there is not one it stops and lists
-the options rather than downloading a JAR on its own. Opening the project in
-Android Studio also creates the wrapper.
+`gradle-wrapper.jar` is a binary and cannot be authored as text. The scaffolded
+project includes `gradle/wrapper/gradle-wrapper.properties`; generate the rest
+with `gradle wrapper --gradle-version <version>` or by opening the project in
+Android Studio. Do not download `gradle-wrapper.jar` from the internet on the
+user's behalf.
 
 ## Generated dependency versions
 
