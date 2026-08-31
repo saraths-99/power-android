@@ -1,13 +1,14 @@
 # Project structure reference
 
-The authoritative source for what the scaffolder produces is
-`scripts/scaffold_android_project.py` (`build_mvvm`, `build_clean`, and the
-`build_context` package map). This document mirrors that logic in human-readable
-form so the structure can be reviewed, but **it is derived — the script wins if
-they ever disagree**, and the script must not be hand-reimplemented from this doc.
+This is the authoritative specification of the module graph and package layout the
+skill scaffolds. Use it together with `references/token-map.md` (how to compute the
+`PKG_*` package roots and other tokens) and `references/file-manifest.md` (which
+template goes to which path). Scaffolding is instruction-driven — you reproduce
+this structure by copying and token-substituting the templates under
+`assets/templates/`; there is no generator script.
 
-Two architectures are produced, selected by the required `architecture` config
-key. The choice changes the entire module graph and the package layout.
+Two architectures are produced, selected by the required `architecture` setting.
+The choice changes the entire module graph and the package layout.
 
 ---
 
@@ -26,7 +27,7 @@ a repository directly.
 
 ### Package layout (under `app/src/main/kotlin/<pkg>/`)
 
-Package roots come from `build_context`. For `mvvm`:
+Package roots (the `PKG_*` tokens in `references/token-map.md`). For `mvvm`:
 
 | Role | Package |
 |---|---|
@@ -97,7 +98,7 @@ feature/<name>/impl        Screen, ViewModel, UiState, Hilt bindings
 
 ### Package layout
 
-Package roots for `clean-mvvm` (from `build_context`):
+Package roots for `clean-mvvm` (the `PKG_*` tokens in `references/token-map.md`):
 
 | Role | Module | Package |
 |---|---|---|
@@ -161,17 +162,20 @@ architecture: `settings.gradle.kts` (contents
 differ), root `build.gradle.kts`, `gradle.properties`, `gradle/libs.versions.toml`
 (the convention section is appended only for `clean-mvvm`),
 `gradle/wrapper/gradle-wrapper.properties`, `.gitignore`, `README.md` (architecture-
-specific), launcher icon PNGs (generated as real binaries), and a
-`.kiro/steering/` directory rendered for the chosen architecture
+specific), a vector adaptive launcher icon (see SKILL.md Step 5 — not PNG mipmaps),
+and a `.kiro/steering/` directory rendered for the chosen architecture
 (`module-architecture.md`, `build-conventions.md`, `code-patterns.md`).
 
 ---
 
-## 5. Why this stays in the script, not in prose
+## 5. Getting this right by hand
 
-Reproducing this structure by hand — rather than running the scaffolder — loses
-the guarantees the script enforces: the architecture branching, the exact package
-map above, the conditional inclusion, config validation (valid package, no
-reserved words, SDK ordering, the network-requires-database rule), token
-rendering with same-package import elision, and the binary launcher icons. Use
-this document to understand and review the output; use the script to produce it.
+Scaffolding is instruction-driven, so the correctness of the output depends on
+following this spec exactly. Pay special attention to the parts that used to be
+enforced automatically and are now your responsibility: architecture branching,
+the exact package map above, the conditional inclusion, settings validation
+(valid package, no reserved words, SDK ordering, the network-requires-database
+rule), token substitution with same-package import elision, and providing a
+launcher icon (a vector adaptive icon — see SKILL.md Step 5). After writing every
+file, confirm no `{{TOKEN}}` remains and each `package` line matches its
+directory.

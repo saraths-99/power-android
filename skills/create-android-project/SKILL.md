@@ -120,112 +120,121 @@ to accept everything except the required answers.
 See `references/project-interview.md` for wording, follow-ups, and how to map
 vague answers onto these options.
 
-## Step 3: Write the config file
+## Step 3: Settle the settings, then validate them
 
-Get the full key set with the matching architecture pre-filled:
+This skill scaffolds the project by copying the templates under
+`assets/templates/` and substituting tokens — there is no generator script to
+run. So the values you resolve here are used directly; get them right before
+writing any file.
 
-```bash
-python3 scripts/scaffold_android_project.py --print-config-template --architecture clean-mvvm
-python3 scripts/scaffold_android_project.py --print-config-template --architecture mvvm
+Collect these into a small settings block:
+
+```
+architecture      mvvm | clean-mvvm     (required)
+appName           display name          (required)
+packageName       applicationId/root    (required)
+projectDirName    kebab-case of appName
+rootProjectName   PascalCase of appName
+initialFeature    one lowercase word    (default: home)
+minSdk 24  compileSdk 34  targetSdk 34
+includeDatabase / includeNetwork / includeDatastore / includeTestUtilities / minifyRelease  (default true)
+gradleVersion     8.6
 ```
 
-Example:
+**Validate them yourself — nothing else will.** Reject and fix before proceeding
+if any of these fail:
 
-```json
-{
-  "architecture": "clean-mvvm",
-  "appName": "Trail Log",
-  "packageName": "com.acme.traillog",
-  "projectDirName": "trail-log",
-  "rootProjectName": "TrailLog",
-  "initialFeature": "home",
-  "minSdk": 24,
-  "compileSdk": 34,
-  "targetSdk": 34,
-  "includeDatabase": true,
-  "includeNetwork": true,
-  "includeDatastore": true,
-  "includeTestUtilities": true,
-  "minifyRelease": true,
-  "gradleVersion": "8.6"
-}
-```
-
-Write it somewhere temporary such as `/tmp/android-scaffold.json`, not into the
-new project. Unknown keys are rejected, so do not invent extra ones.
-`architecture`, `appName` and `packageName` must be present explicitly.
+- `packageName` matches `^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$` (lowercase dotted
+  segments), and no segment is a Kotlin/Java reserved word (`class`, `object`,
+  `fun`, `val`, `var`, `is`, `in`, `data`, `enum`, `interface`, …).
+- `initialFeature` is a single lowercase word and not a reserved word.
+- `minSdk >= 21`, `targetSdk <= compileSdk`, `minSdk <= targetSdk`.
+- `includeNetwork` implies `includeDatabase` — the generated repository is
+  offline-first, so remote data needs a local source of truth. If the user wants
+  network without a database, explain this and let them decide.
 
 Echo the resolved settings back in two or three lines and get a yes before
 writing files. This is the last cheap moment to fix a wrong package name or a
-wrong architecture.
+wrong architecture. There is no `--dry-run` and no `--force`: you are writing
+files directly, so never write into a non-empty target directory without the
+user's explicit go-ahead.
 
-## Step 4: Run the scaffolder
+## Step 4: Scaffold the project by copying templates
 
-Preview first when the destination is uncertain:
+Resolve every token once, then create each file. Work from these references:
+
+- `references/token-map.md` — how to compute every token (`PKG`, `APP_CLASS`,
+  `APP_ROOT`, `PREFIX`, `DB_NAME`, the ~20 architecture-specific `PKG_*` package
+  roots, and the conditional same-package import tokens).
+- `references/file-manifest.md` — which template maps to which destination path,
+  and which files each `include*` flag adds or drops.
+- `references/project-structure.md` — the module graph and package layout you are
+  reproducing.
+
+Procedure:
+
+1. **Compute the tokens** for the chosen architecture (token-map.md §1–3). Do
+   this once; reuse the values everywhere.
+2. **Create the files** in the manifest that apply to this architecture and flag
+   set. For each: read the template from `assets/templates/…`, replace **every**
+   `{{TOKEN}}` (longest names first), and write it to
+   `<module>/src/main/kotlin/<package-as-path>/<FileName>.kt` (or the resource /
+   root path given in the manifest).
+3. **Assemble the flag-driven lists** by hand: the plugin and dependency lists in
+   each `build.gradle.kts`, the `settings.gradle.kts` includes, and the version
+   catalog (append the convention section only for `clean-mvvm`). See
+   project-structure.md §3 for exactly what each flag adds.
+4. **Emit the project's own steering** into `.kiro/steering/`
+   (`module-architecture.md`, `build-conventions.md`, `code-patterns.md`) from
+   `assets/steering/…`, rendered for the chosen architecture. These keep later
+   sessions in the new repository consistent with how it was scaffolded, so
+   mention them in the final report.
+5. **Substitution is exhaustive.** After writing everything, search the output
+   tree for `{{` and `}}`; there must be zero matches. A leftover token is a bug —
+   fix it before continuing.
+
+Because you are doing the substitution and the conditional wiring by hand, the
+output is only as correct as this pass. Double-check the two most common mistakes:
+a `package` line that does not match the file's directory, and a same-package
+import that should have been elided (token-map.md §3).
+
+## Step 5: Add launcher icons (vector, not PNG)
+
+There is no image generator here. Provide an **adaptive icon defined in XML** so
+resource resolution works without any binary asset. The manifest references
+`@mipmap/ic_launcher` and `@mipmap/ic_launcher_round` unconditionally, and the
+default `minSdk` is 24, so you must supply a fallback that also resolves below
+API 26 — not only the `-v26` adaptive icon. Create:
+
+- `app/src/main/res/values/ic_launcher_background.xml` — a color resource.
+- `app/src/main/res/drawable/ic_launcher_foreground.xml` — a simple vector
+  drawable (a monochrome glyph on transparent is fine).
+- `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` and
+  `ic_launcher_round.xml` — `<adaptive-icon>` referencing the two above (API 26+).
+- `app/src/main/res/drawable/ic_launcher.xml` — a plain vector drawable used as
+  the pre-API-26 fallback, and
+  `app/src/main/res/mipmap-anydpi/ic_launcher.xml` + `ic_launcher_round.xml` that
+  alias it (`<bitmap>`/`<inset>` or a simple `<vector>`), so both mipmap names
+  resolve on API 24–25 as well.
+
+This is a placeholder the user is expected to replace with real assets (mention
+it in the report). If the user needs density-specific PNG mipmaps, they add those
+in Android Studio's Image Asset tool.
+
+## Step 6: Generate the Gradle wrapper
+
+The wrapper needs a binary JAR, which cannot be authored as text, so it is not
+scaffolded. Have the user run one of:
 
 ```bash
-python3 scripts/scaffold_android_project.py --config /tmp/android-scaffold.json \
-  --output-dir <parent-dir> --dry-run
+gradle wrapper --gradle-version <gradleVersion>   # if a local gradle is installed
 ```
 
-Then generate:
+or open the project in Android Studio, which creates the wrapper with no manual
+download. Do not download `gradle-wrapper.jar` from the internet on the user's
+behalf; that is a supply-chain decision that belongs to them.
 
-```bash
-python3 scripts/scaffold_android_project.py --config /tmp/android-scaffold.json \
-  --output-dir <parent-dir>
-```
-
-It creates `<parent-dir>/<projectDirName>/`. It refuses to touch an existing
-directory unless `--force` is passed, and **`--force` deletes that directory
-first**. Only pass it once the user has confirmed that is what they want.
-
-Alongside the code it writes `.kiro/steering/` into the new project:
-`module-architecture.md`, `build-conventions.md` and `code-patterns.md`, rendered
-for the chosen architecture. These are what keep later agent sessions in that
-repository consistent with how it was scaffolded, so mention them in the final
-report rather than leaving them to be discovered.
-
-Configuration errors exit with status 2 and a specific message. Fix the config
-and re-run rather than hand-editing generated files.
-
-### What the scaffolder guarantees (do not reimplement by hand)
-
-The script is the deterministic engine. Given the same config it produces a
-byte-for-byte identical project, and it owns decisions that must not be
-reconstructed from prose. Always run it rather than writing these out manually:
-
-- **Architecture branching.** `mvvm` (single module) vs `clean-mvvm` (multi
-  module) drives the entire layout, the module graph and the `settings.gradle.kts`
-  includes.
-- **Package and module layout.** The per-architecture package map and module list
-  — see `references/project-structure.md` for the authoritative tables.
-- **Conditional inclusion.** `includeDatabase` / `includeNetwork` /
-  `includeDatastore` / `includeTestUtilities` / `minifyRelease` add or drop whole
-  files or modules, including `includeNetwork` requiring `includeDatabase`.
-- **Config validation.** Valid package name, no Kotlin reserved words, SDK
-  ordering, and the offline-first network-requires-database rule.
-- **Token rendering.** `{{TOKEN}}` substitution with longest-key-first matching
-  and same-package import elision.
-- **Binary assets.** Real launcher-icon PNGs, which cannot be a text template.
-
-For the *what and why* of the structure use the reference docs; for *producing*
-it, use the script. `references/project-structure.md` mirrors the engine in
-readable form but the script wins if they ever diverge.
-
-## Step 5: Generate the Gradle wrapper
-
-The wrapper needs a binary JAR, so it is not generated. Run:
-
-```bash
-scripts/init_gradle_wrapper.sh <project-dir>
-```
-
-It uses a local `gradle` install if there is one. If there is not, it stops and
-explains the options instead of downloading anything on its own. Ask the user
-before letting it fetch from the network, and mention that opening the project in
-Android Studio also creates the wrapper with no download step from you.
-
-## Step 6: Verify
+## Step 7: Verify
 
 Run the build and fix anything that breaks before reporting success:
 
@@ -245,6 +254,7 @@ domain layer really is framework-free.
 If you cannot run a build in this environment, say so plainly. Do not call the
 project verified when it has only been generated. At minimum confirm:
 
+- no `{{TOKEN}}` remains anywhere in the tree (grep for `{{`)
 - `settings.gradle.kts` includes every module directory that exists
 - every `alias(libs.plugins.…)` and `libs.…` reference resolves in
   `gradle/libs.versions.toml`
@@ -252,15 +262,15 @@ project verified when it has only been generated. At minimum confirm:
 - for `clean-mvvm`: nothing under `domain/` imports `android.`, `androidx.` or
   `dagger.`, and no feature module depends on `:data`
 
-## Step 7: Report
+## Step 8: Report
 
 Tell the user:
 
 - the absolute project path, the architecture, and the module list
 - which optional layers were included
 - whether the build ran, and the result
-- the placeholders they must replace: launcher icons in
-  `app/src/main/res/mipmap-*`, brand colours in the design system, `BASE_URL` in
+- the placeholders they must replace: the vector launcher icon under
+  `app/src/main/res/` (Step 5), brand colours in the design system, `BASE_URL` in
   the network layer, the sample `Item` model, and the missing release signing
   config
 
@@ -273,6 +283,8 @@ the sample model to their real domain, or adding a second feature.
 |---|---|
 | Interview wording and follow-ups | `references/project-interview.md` |
 | Choosing between the two architectures | `references/architecture-selection.md` |
+| Token computation and substitution rules | `references/token-map.md` |
+| Which template goes where (per architecture/flags) | `references/file-manifest.md` |
 | Per-architecture module/package layout and inclusion matrix | `references/project-structure.md` |
 | What to do after scaffolding | `references/post-setup.md` |
 | Module boundaries and dependency rules | `references/modularization.md` |

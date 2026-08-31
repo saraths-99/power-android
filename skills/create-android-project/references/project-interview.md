@@ -52,7 +52,7 @@ This is the one answer that is genuinely expensive to change later, because it i
 the applicationId that identifies the app on Play and on device. Push back if it
 looks like a placeholder.
 
-Rules enforced by the scaffolder:
+Rules to validate yourself before scaffolding (SKILL.md Step 3):
 - lowercase segments separated by dots, at least two segments
 - each segment starts with a letter
 - no segment may be a Kotlin or Java reserved word (`object`, `class`, `data`,
@@ -79,7 +79,7 @@ Default 24. Only expand if asked: a lower minSdk reaches more devices but costs
 compatibility work; a higher one unlocks newer APIs. Note that dynamic colour
 needs API 31 either way, and the generated theme already guards for that.
 
-Do not go below 21; Compose requires it and the scaffolder rejects it.
+Do not go below 21; Compose requires it, so reject a lower value in Step 3.
 
 ### Room, Retrofit, DataStore
 
