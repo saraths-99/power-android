@@ -42,7 +42,7 @@ Package roots come from `build_context`. For `mvvm`:
 | Theme | `<pkg>.ui.theme` |
 | Reusable components | `<pkg>.ui.components` |
 | Feature screen/VM/UiState | `<pkg>.ui.<feature>` |
-| Navigation | `<pkg>.ui.navigation` |
+| Navigation (nav contract in `Routes.kt`) | `<pkg>.ui.navigation` |
 | Test doubles | `<pkg>.testing` (in `src/test`) |
 
 ```
@@ -113,7 +113,7 @@ Package roots for `clean-mvvm` (from `build_context`):
 | Preferences (DataStore) | `core/datastore` | `<pkg>.core.datastore` |
 | Theme | `core/designsystem` | `<pkg>.core.designsystem.theme` |
 | Reusable components | `core/ui` | `<pkg>.core.ui` |
-| Feature nav contract | `feature/<f>/api` | `<pkg>.feature.<f>.api` |
+| Feature nav contract (`<Feature>Navigation.kt`) | `feature/<f>/api` | `<pkg>.feature.<f>.api` |
 | Feature screen/VM/UiState | `feature/<f>/impl` | `<pkg>.feature.<f>.impl` |
 | App NavHost | `app` | `<pkg>.navigation` |
 | Test doubles | `core/testing` | `<pkg>.core.testing` |
@@ -154,9 +154,10 @@ variant (`T_REPO_ITEM_IMPL_MEMORY`) instead of the offline-first one.
 
 ---
 
-## 4. Files that are the same for both architectures
+## 4. Files generated regardless of architecture (contents vary)
 
-Generated at the root regardless of architecture: `settings.gradle.kts` (contents
+These are written for both architectures, though several differ in content per
+architecture: `settings.gradle.kts` (contents
 differ), root `build.gradle.kts`, `gradle.properties`, `gradle/libs.versions.toml`
 (the convention section is appended only for `clean-mvvm`),
 `gradle/wrapper/gradle-wrapper.properties`, `.gitignore`, `README.md` (architecture-
