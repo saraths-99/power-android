@@ -188,6 +188,30 @@ report rather than leaving them to be discovered.
 Configuration errors exit with status 2 and a specific message. Fix the config
 and re-run rather than hand-editing generated files.
 
+### What the scaffolder guarantees (do not reimplement by hand)
+
+The script is the deterministic engine. Given the same config it produces a
+byte-for-byte identical project, and it owns decisions that must not be
+reconstructed from prose. Always run it rather than writing these out manually:
+
+- **Architecture branching.** `mvvm` (single module) vs `clean-mvvm` (multi
+  module) drives the entire layout, the module graph and the `settings.gradle.kts`
+  includes.
+- **Package and module layout.** The per-architecture package map and module list
+  — see `references/project-structure.md` for the authoritative tables.
+- **Conditional inclusion.** `includeDatabase` / `includeNetwork` /
+  `includeDatastore` / `includeTestUtilities` / `minifyRelease` add or drop whole
+  files or modules, including `includeNetwork` requiring `includeDatabase`.
+- **Config validation.** Valid package name, no Kotlin reserved words, SDK
+  ordering, and the offline-first network-requires-database rule.
+- **Token rendering.** `{{TOKEN}}` substitution with longest-key-first matching
+  and same-package import elision.
+- **Binary assets.** Real launcher-icon PNGs, which cannot be a text template.
+
+For the *what and why* of the structure use the reference docs; for *producing*
+it, use the script. `references/project-structure.md` mirrors the engine in
+readable form but the script wins if they ever diverge.
+
 ## Step 5: Generate the Gradle wrapper
 
 The wrapper needs a binary JAR, so it is not generated. Run:
@@ -249,6 +273,7 @@ the sample model to their real domain, or adding a second feature.
 |---|---|
 | Interview wording and follow-ups | `references/project-interview.md` |
 | Choosing between the two architectures | `references/architecture-selection.md` |
+| Per-architecture module/package layout and inclusion matrix | `references/project-structure.md` |
 | What to do after scaffolding | `references/post-setup.md` |
 | Module boundaries and dependency rules | `references/modularization.md` |
 | UI / domain / data layer patterns | `references/architecture.md` |

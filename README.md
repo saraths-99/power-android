@@ -60,6 +60,7 @@ skills/create-android-project/
 │       └── readme/                             The two generated project READMEs
 └── references/
     ├── architecture-selection.md             Choosing between the two architectures
+    ├── project-structure.md                  Per-architecture module/package layout + inclusion matrix
     ├── project-interview.md                  Interview wording and follow-ups
     ├── post-setup.md                         What to do after scaffolding
     ├── modularization.md                     Module boundaries and dependency rules
