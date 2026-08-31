@@ -201,13 +201,21 @@ import that should have been elided (token-map.md §3).
 ## Step 5: Add launcher icons (vector, not PNG)
 
 There is no image generator here. Provide an **adaptive icon defined in XML** so
-resource resolution works without any binary asset:
+resource resolution works without any binary asset. The manifest references
+`@mipmap/ic_launcher` and `@mipmap/ic_launcher_round` unconditionally, and the
+default `minSdk` is 24, so you must supply a fallback that also resolves below
+API 26 — not only the `-v26` adaptive icon. Create:
 
 - `app/src/main/res/values/ic_launcher_background.xml` — a color resource.
 - `app/src/main/res/drawable/ic_launcher_foreground.xml` — a simple vector
   drawable (a monochrome glyph on transparent is fine).
 - `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` and
-  `ic_launcher_round.xml` — `<adaptive-icon>` referencing the two above.
+  `ic_launcher_round.xml` — `<adaptive-icon>` referencing the two above (API 26+).
+- `app/src/main/res/drawable/ic_launcher.xml` — a plain vector drawable used as
+  the pre-API-26 fallback, and
+  `app/src/main/res/mipmap-anydpi/ic_launcher.xml` + `ic_launcher_round.xml` that
+  alias it (`<bitmap>`/`<inset>` or a simple `<vector>`), so both mipmap names
+  resolve on API 24–25 as well.
 
 This is a placeholder the user is expected to replace with real assets (mention
 it in the report). If the user needs density-specific PNG mipmaps, they add those

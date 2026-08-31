@@ -162,8 +162,8 @@ architecture: `settings.gradle.kts` (contents
 differ), root `build.gradle.kts`, `gradle.properties`, `gradle/libs.versions.toml`
 (the convention section is appended only for `clean-mvvm`),
 `gradle/wrapper/gradle-wrapper.properties`, `.gitignore`, `README.md` (architecture-
-specific), launcher icon PNGs (generated as real binaries), and a
-`.kiro/steering/` directory rendered for the chosen architecture
+specific), a vector adaptive launcher icon (see SKILL.md Step 5 — not PNG mipmaps),
+and a `.kiro/steering/` directory rendered for the chosen architecture
 (`module-architecture.md`, `build-conventions.md`, `code-patterns.md`).
 
 ---
