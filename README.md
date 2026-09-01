@@ -61,27 +61,31 @@ skills/create-android-project/
     ├── file-manifest.md                      Which template goes where, per arch/flags
     ├── project-structure.md                  Per-architecture module/package layout + inclusion matrix
     ├── project-interview.md                  Interview wording and follow-ups
-    ├── post-setup.md                         What to do after scaffolding
+    ├── post-setup.md                         What to do after scaffolding, incl. adding a feature
     ├── modularization.md                     Module boundaries and dependency rules
     ├── architecture.md                       UI / domain / data layer patterns
     ├── compose-patterns.md                   Compose conventions
     ├── gradle-setup.md                       Gradle and convention plugin details
-    └── testing.md                            Testing approach
-
-skills/single-module-mvvm-reference/
-└── SKILL.md                                  Copy-adaptable per-layer MVVM templates
-
-skills/clean-mvvm-reference/
-└── SKILL.md                                  Copy-adaptable Clean Architecture + MVVM templates
+    ├── testing.md                            Testing approach
+    ├── single-module-mvvm-reference.md       Copy-adaptable per-layer MVVM templates (adding a feature)
+    └── clean-mvvm-reference.md               Copy-adaptable Clean Architecture + MVVM templates (adding a feature)
 ```
 
 ## Skills
 
-| Skill | Use when |
+This power is a single skill. `create-android-project` covers two jobs, described
+in its own `SKILL.md`:
+
+| Job | Use when |
 |---|---|
-| `create-android-project` | Bootstrapping a brand-new Android project from scratch (interview + full scaffold, `mvvm` or `clean-mvvm`). |
-| `single-module-mvvm-reference` | Adding an MVVM feature/screen to an existing single-module app, or you just need the per-layer code templates (model, repository, UiState, ViewModel, Compose route/content) without running the scaffolder. |
-| `clean-mvvm-reference` | Adding a Clean Architecture + MVVM feature to an existing app, or grabbing the per-layer templates for the `View → ViewModel → UseCase → Repository interface → Repository impl → DataSource` flow — without running the scaffolder. |
+| Bootstrap a new project | Starting a brand-new Android project from scratch (interview + full scaffold, `mvvm` or `clean-mvvm`). |
+| Add a feature to an existing project | Adding a feature/screen to an app that already follows MVVM or Clean Architecture + MVVM — whether or not this skill scaffolded it. Uses the per-layer templates in `references/single-module-mvvm-reference.md` / `references/clean-mvvm-reference.md` plus the module/Gradle wiring in `references/post-setup.md`. |
+
+There used to be two separate reference skills (`single-module-mvvm-reference`,
+`clean-mvvm-reference`) for the second job. They were merged into
+`create-android-project/references/` so the whole power is one skill with one
+entry point, instead of relying on Claude picking the right one of three
+similarly-described skills.
 
 ## How scaffolding works (no generator script)
 

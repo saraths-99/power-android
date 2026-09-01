@@ -1,15 +1,41 @@
 ---
 name: create-android-project
-description: Bootstrap a brand-new Android app from scratch — interview the user, pick between MVVM (single module) and Clean Architecture + MVVM (multi module), then scaffold the whole project with Compose, Hilt, an offline-first data layer, a first feature wired end to end, and matching steering docs. Use whenever someone wants to start a new Android app, scaffold/bootstrap an Android project or codebase "from scratch" or "from nothing", or asks which Android architecture to pick for a new app. Do NOT use this to add a feature to an existing project — see `references/modularization.md` for that instead.
+description: Bootstrap a brand-new Android app from scratch — interview the user, pick between MVVM (single module) and Clean Architecture + MVVM (multi module), then scaffold the whole project with Compose, Hilt, an offline-first data layer, a first feature wired end to end, and matching steering docs. Also covers adding a feature/screen to an existing MVVM or Clean Architecture + MVVM Android app, using copy-adaptable per-layer templates. Use whenever someone wants to start a new Android app, scaffold/bootstrap an Android project or codebase "from scratch" or "from nothing", asks which Android architecture to pick for a new app, or wants to add a feature/screen to an existing MVVM or Clean Architecture Android app.
 ---
 
-# Create an Android project from scratch
+# Create an Android project, or add a feature to one
+
+This skill covers two different jobs. Figure out which one applies before doing
+anything.
+
+## Job 1: Bootstrap a brand-new project
 
 Use this when someone wants to start a new Android app, bootstrap an Android
-project, or set up an Android codebase from nothing.
+project, or set up an Android codebase from nothing. Follow Steps 1–8 below:
+interview, scaffold, verify, report.
 
-Do **not** use it to add a feature to an existing project. For that, read
-`references/modularization.md` and follow the feature-module pattern.
+## Job 2: Add a feature to an existing project
+
+Use this when someone wants to add a feature or screen to an Android app that
+already exists and already follows MVVM or Clean Architecture + MVVM — whether or
+not this skill scaffolded it. Skip Steps 1–8 entirely; they are the from-scratch
+scaffold flow and would overwrite or duplicate what's already there. Instead:
+
+1. Find out (or infer from the existing code) which architecture the project
+   uses — single-module `mvvm` or multi-module `clean-mvvm` — and its actual
+   package name and module layout. Never assume `com.example.app`.
+2. Read `references/post-setup.md` §"Adding a second feature" for the
+   module/Gradle wiring the target architecture needs (new package or new Gradle
+   modules, `settings.gradle.kts` registration, route wiring). For `clean-mvvm`,
+   `references/modularization.md` has the fuller module-dependency-rules picture
+   if the project's module graph needs it.
+3. Read `references/single-module-mvvm-reference.md` (mvvm) or
+   `references/clean-mvvm-reference.md` (clean-mvvm) for the per-layer code
+   templates — UiState, ViewModel, Route/Content, Repository, and for
+   `clean-mvvm` also UseCase and the repository interface.
+4. Adapt every template to the existing project's real package name, entity, and
+   naming conventions — the templates use a placeholder `com.example.app`/`User`
+   throughout, which must not leak into the output.
 
 ## Two selectable architectures
 
@@ -330,7 +356,9 @@ Tell the user:
   config
 
 Then read `references/post-setup.md` and offer the obvious next step: renaming
-the sample model to their real domain, or adding a second feature.
+the sample model to their real domain, or adding a second feature. For the
+latter, mention that this same skill handles it (see "Job 2" above) — no need to
+start a new conversation for it.
 
 ## Reference material
 
@@ -348,6 +376,7 @@ the sample model to their real domain, or adding a second feature.
 | Compose conventions | `references/compose-patterns.md` |
 | Gradle and convention plugin details | `references/gradle-setup.md` |
 | Testing approach and test doubles | `references/testing.md` |
+| Per-layer code templates for adding a feature (Job 2) | `references/single-module-mvvm-reference.md` (mvvm) or `references/clean-mvvm-reference.md` (clean-mvvm) |
 
 ## Conventions the generated code follows
 
