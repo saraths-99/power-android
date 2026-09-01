@@ -89,7 +89,10 @@ For `clean-mvvm`, the feature strings go in
 | `build.gradle.kts` (root) | `root/ROOT_BUILD_GRADLE.gradle.kts` | |
 | `gradle.properties` | `root/GRADLE_PROPERTIES.properties` | |
 | `gradle/libs.versions.toml` | `root/VERSION_CATALOG_BASE.toml` (+ `VERSION_CATALOG_CONVENTION.toml` appended for clean) | |
-| `gradle/wrapper/gradle-wrapper.properties` | `root/GRADLE_WRAPPER_PROPERTIES.properties` | |
+| `gradle/wrapper/gradle-wrapper.properties` | `root/GRADLE_WRAPPER_PROPERTIES.properties` | token substitution: `{{GRADLE_VERSION}}` → `8.7` |
+| `gradle/wrapper/gradle-wrapper.jar` | `root/gradle-wrapper/gradle-wrapper.jar` | binary file, copy as-is |
+| `gradlew` | `root/gradle-wrapper/gradlew` | make executable on Unix systems |
+| `gradlew.bat` | `root/gradle-wrapper/gradlew.bat` | |
 | `.gitignore` | `root/GITIGNORE.gitignore` | |
 | `app/build.gradle.kts` | `app-build/T_APP_BUILD_MVVM.gradle.kts` or `T_APP_BUILD_CLEAN.gradle.kts` | assemble the plugin + dependency lists per the flags (see project-structure.md §3) |
 | `README.md` | `readme/README_MVVM.md` or `README_CLEAN.md` | |

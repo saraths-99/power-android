@@ -212,7 +212,10 @@ Procedure:
    set. For each: read the template from `assets/templates/…`, replace **every**
    `{{TOKEN}}` (longest names first), and write it to
    `<module>/src/main/kotlin/<package-as-path>/<FileName>.kt` (or the resource /
-   root path given in the manifest).
+   root path given in the manifest). For the Gradle wrapper files (gradlew,
+   gradlew.bat, gradle-wrapper.jar), copy them directly from the templates
+   without token substitution. Set executable permissions on gradlew for Unix
+   systems (use execute_bash with chmod +x).
 3. **Assemble the flag-driven lists** by hand: the plugin and dependency lists in
    each `build.gradle.kts`, the `settings.gradle.kts` includes, and the version
    catalog (append the convention section only for `clean-mvvm`). See
@@ -221,7 +224,9 @@ Procedure:
    subsection immediately below; it is exhaustive and self-contained.
 5. **Substitution is exhaustive.** After writing everything, search the output
    tree for `{{` and `}}`; there must be zero matches. A leftover token is a bug —
-   fix it before continuing.
+   fix it before continuing. Verify gradle-wrapper.jar is exactly 43453 bytes
+   (the Gradle 8.7 wrapper JAR size). Verify gradlew has Unix executable
+   permissions (755 or +x).
 
 Because you are doing the substitution and the conditional wiring by hand, the
 output is only as correct as this pass. Double-check the two most common mistakes:
@@ -297,22 +302,22 @@ This is a placeholder the user is expected to replace with real assets (mention
 it in the report). If the user needs density-specific PNG mipmaps, they add those
 in Android Studio's Image Asset tool.
 
-## Step 6: Generate the Gradle wrapper
+## Step 6: Verify Gradle wrapper
 
-The wrapper needs a binary JAR, which cannot be authored as text, so it is not
-scaffolded. Have the user run one of:
+The Gradle wrapper files (gradlew, gradlew.bat, gradle-wrapper.jar, gradle-wrapper.properties) are 
+now generated as part of the scaffolding process in Step 4. No additional gradle command is needed.
 
-```bash
-gradle wrapper --gradle-version <gradleVersion>   # if a local gradle is installed
-```
+Verify the wrapper is complete:
+- `gradle/wrapper/gradle-wrapper.properties` exists and specifies Gradle 8.7
+- `gradle/wrapper/gradle-wrapper.jar` exists and is ~60KB
+- `gradlew` exists and is executable (Unix systems)
+- `gradlew.bat` exists (Windows systems)
 
-or open the project in Android Studio, which creates the wrapper with no manual
-download. Do not download `gradle-wrapper.jar` from the internet on the user's
-behalf; that is a supply-chain decision that belongs to them.
+If any wrapper component is missing, re-run Step 4 to regenerate the project structure.
 
 ## Step 7: Verify
 
-Run the build and fix anything that breaks before reporting success:
+Run the build using the generated Gradle wrapper to verify the project is correctly configured:
 
 ```bash
 cd <project-dir>
