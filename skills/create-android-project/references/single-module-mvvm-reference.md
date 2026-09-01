@@ -1,16 +1,14 @@
----
-name: single-module-mvvm-reference
-description: Copy-adaptable reference templates for a single-module Android MVVM feature in Jetpack Compose. Use when adding an MVVM feature or screen to an existing single-module app, or when you need the per-layer code templates (model, repository, UiState, ViewModel, Compose route/content) without running the full interview-driven project scaffolder. For bootstrapping a brand-new project from scratch, use the create-android-project skill instead.
-metadata:
-  version: "1.0"
-  stack: "Android · Kotlin · Jetpack Compose · Material 3"
----
+# Single-Module MVVM (feature reference)
 
-# Single-Module MVVM (Jetpack Compose)
+Copy-adaptable reference templates for adding a feature to an Android app that
+follows **MVVM** inside a **single Gradle module** (`:app`) — either a project
+this skill scaffolded with `architecture: mvvm`, or any other single-module MVVM
+app. It defines the layer boundaries, the package layout, the dependency
+direction, and copy-adaptable templates for each layer.
 
-Use this skill to scaffold or extend an Android app that follows **MVVM** inside a
-**single Gradle module** (`:app`). It defines the layer boundaries, the package
-layout, the dependency direction, and copy-adaptable templates for each layer.
+For the module/Gradle wiring a new feature needs (route registration, package
+creation), see `post-setup.md` §"Adding a second feature" › `mvvm`. This file
+covers the per-layer code that goes inside that package.
 
 ## Core rules (do not violate)
 

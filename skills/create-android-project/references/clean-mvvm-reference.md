@@ -1,18 +1,16 @@
----
-name: clean-mvvm-reference
-description: Copy-adaptable reference templates for a Clean Architecture + MVVM feature in Jetpack Compose, with a domain layer of use cases and a repository interface owned by domain but implemented in the data layer. Use when adding a Clean-Architecture feature to an existing app, or when you need the per-layer templates (model, use case, repository interface, repository impl, data source, UiState, ViewModel, Compose route/content) following the View → ViewModel → UseCase → Repository → DataSource flow. For a simpler layout without a domain layer, use single-module-mvvm-reference; to bootstrap a whole new project, use create-android-project.
-metadata:
-  version: "1.0"
-  stack: "Android · Kotlin · Jetpack Compose · Material 3 · Coroutines/Flow"
----
+# Clean Architecture + MVVM (feature reference)
 
-# Clean Architecture + MVVM (reference)
+Copy-adaptable reference templates for adding a feature that follows **Clean
+Architecture with MVVM on top** — either a project this skill scaffolded with
+`architecture: clean-mvvm`, or any other Clean Architecture + MVVM app. It adds a
+**domain layer** between the ViewModel and the data layer: ViewModels depend on
+**use cases**, and the **repository interface lives in domain** while its
+**implementation lives in data**. That inversion is the whole point — the domain
+layer stays pure Kotlin with no Android or data dependencies.
 
-Use this skill to add a feature that follows **Clean Architecture with MVVM on
-top**. It adds a **domain layer** between the ViewModel and the data layer:
-ViewModels depend on **use cases**, and the **repository interface lives in
-domain** while its **implementation lives in data**. That inversion is the whole
-point — the domain layer stays pure Kotlin with no Android or data dependencies.
+For the module/Gradle wiring a new feature needs (feature module registration,
+convention plugins), see `post-setup.md` §"Adding a second feature" ›
+`clean-mvvm`. This file covers the per-layer code that goes inside those modules.
 
 ## Data flow (single direction, top to bottom)
 
@@ -443,4 +441,3 @@ class MainActivity : ComponentActivity() {
 - [ ] DTOs/entities mapped to domain models; neither reaches the UI.
 - [ ] Exactly one `UiState`; stateful route + stateless previewable content.
 - [ ] Async work runs in `viewModelScope`; state exposed as read-only `StateFlow`.
-```

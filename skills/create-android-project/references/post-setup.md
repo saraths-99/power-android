@@ -50,6 +50,13 @@ is verifiable with `./gradlew :app:assembleDebug`.
 
 ## Adding a second feature
 
+The steps below cover the module/Gradle wiring a new feature needs — they do not
+cover the per-layer code itself. For the UiState, ViewModel, Route/Content,
+Repository (and for `clean-mvvm`, UseCase and repository interface) templates,
+follow `single-module-mvvm-reference.md` (mvvm) or `clean-mvvm-reference.md`
+(clean-mvvm), in this same `references/` directory, once the module/package below
+exists — they give copy-adaptable templates for exactly that layer split.
+
 ### `clean-mvvm`
 
 1. `feature/<name>/api/build.gradle.kts` with the `android.library` convention,
