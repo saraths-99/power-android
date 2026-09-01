@@ -139,12 +139,12 @@ to accept everything except the required answers.
    them decide.
 10. **User settings storage (Preferences DataStore)** — default yes. Also wires
     dark-theme and dynamic-colour preferences through the app.
-11. **Test utilities** — default yes. In `clean-mvvm` this is a `core:testing`
+11. **Test utilities** — default no. In `clean-mvvm` this is a `core:testing`
     module; in `mvvm` it is a `src/test` package. Either way it generates test
     *helpers*, not test cases.
 12. **Minify the release build (R8)** — default yes.
 13. **Java/Kotlin JVM target** — default `17` (matches AGP 8.x / Kotlin 1.9+ and
-    `compileSdk 34`). Mention only if asked.
+    `compileSdk 34`).
 
 See `references/project-interview.md` for wording, follow-ups, and how to map
 vague answers onto these options.
