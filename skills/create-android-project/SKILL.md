@@ -285,18 +285,90 @@ There is no image generator here. Provide an **adaptive icon defined in XML** so
 resource resolution works without any binary asset. The manifest references
 `@mipmap/ic_launcher` and `@mipmap/ic_launcher_round` unconditionally, and the
 default `minSdk` is 24, so you must supply a fallback that also resolves below
-API 26 — not only the `-v26` adaptive icon. Create:
+API 26 — not only the `-v26` adaptive icon.
 
-- `app/src/main/res/values/ic_launcher_background.xml` — a color resource.
-- `app/src/main/res/drawable/ic_launcher_foreground.xml` — a simple vector
-  drawable (a monochrome glyph on transparent is fine).
-- `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` and
-  `ic_launcher_round.xml` — `<adaptive-icon>` referencing the two above (API 26+).
-- `app/src/main/res/drawable/ic_launcher.xml` — a plain vector drawable used as
-  the pre-API-26 fallback, and
-  `app/src/main/res/mipmap-anydpi/ic_launcher.xml` + `ic_launcher_round.xml` that
-  alias it (`<bitmap>`/`<inset>` or a simple `<vector>`), so both mipmap names
-  resolve on API 24–25 as well.
+**CRITICAL:** Adaptive icons (`<adaptive-icon>`) require API 26+. You MUST place
+them in the `-v26` qualified directory, NOT in `mipmap-anydpi/` directly.
+
+Create these files in the exact locations specified:
+
+1. **`app/src/main/res/values/ic_launcher_background.xml`** — a color resource:
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <resources>
+       <color name="ic_launcher_background">#3DDC84</color>
+   </resources>
+   ```
+
+2. **`app/src/main/res/drawable/ic_launcher_foreground.xml`** — a simple vector drawable:
+   ```xml
+   <vector xmlns:android="http://schemas.android.com/apk/res/android"
+       android:width="108dp"
+       android:height="108dp"
+       android:viewportWidth="108"
+       android:viewportHeight="108">
+       <path
+           android:fillColor="#FFFFFF"
+           android:pathData="M54,44L54,64L64,54L54,44Z" />
+   </vector>
+   ```
+
+3. **`app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`** (NOTE: `-v26` suffix):
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+       <background android:drawable="@color/ic_launcher_background"/>
+       <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+   </adaptive-icon>
+   ```
+
+4. **`app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml`** (NOTE: `-v26` suffix):
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+       <background android:drawable="@color/ic_launcher_background"/>
+       <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+   </adaptive-icon>
+   ```
+
+5. **`app/src/main/res/mipmap-anydpi/ic_launcher.xml`** (pre-API-26 fallback):
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <vector xmlns:android="http://schemas.android.com/apk/res/android"
+       android:width="108dp"
+       android:height="108dp"
+       android:viewportWidth="108"
+       android:viewportHeight="108">
+       <path
+           android:fillColor="#3DDC84"
+           android:pathData="M0,0h108v108h-108z"/>
+       <path
+           android:fillColor="#FFFFFF"
+           android:pathData="M54,44L54,64L64,54L54,44Z"/>
+   </vector>
+   ```
+
+6. **`app/src/main/res/mipmap-anydpi/ic_launcher_round.xml`** (pre-API-26 fallback):
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <vector xmlns:android="http://schemas.android.com/apk/res/android"
+       android:width="108dp"
+       android:height="108dp"
+       android:viewportWidth="108"
+       android:viewportHeight="108">
+       <path
+           android:fillColor="#3DDC84"
+           android:pathData="M0,0h108v108h-108z"/>
+       <path
+           android:fillColor="#FFFFFF"
+           android:pathData="M54,44L54,64L64,54L54,44Z"/>
+   </vector>
+   ```
+
+**Verification:** After creating these files, confirm:
+- Adaptive icons are ONLY in `mipmap-anydpi-v26/` (with `-v26` qualifier)
+- Fallback icons are in `mipmap-anydpi/` (without version qualifier)
+- NO `<adaptive-icon>` elements exist in `mipmap-anydpi/` directory
 
 This is a placeholder the user is expected to replace with real assets (mention
 it in the report). If the user needs density-specific PNG mipmaps, they add those
@@ -332,6 +404,28 @@ unset and there is no `local.properties`, Gradle fails with
 For `clean-mvvm`, `./gradlew :domain:test` is a useful extra check: it proves the
 domain layer really is framework-free — the same check `module-architecture.md`
 §7 documents for later in the project's life.
+
+### Expected Build Warnings
+
+The build may produce these warnings, which are **non-blocking and acceptable**:
+
+1. **"We recommend using a newer Android Gradle plugin to use compileSdk = 35"**
+   - The project uses AGP 8.2.2 with compileSdk 34, which is the tested combination
+   - This is informational; the build succeeds
+
+2. **"'capitalize(): String' is deprecated. Use replaceFirstChar instead"**
+   - May appear in generated UI code
+   - Kotlin deprecation warning for string manipulation
+   - Does not affect functionality; can be fixed by user if desired
+
+3. **"'setter for statusBarColor: Int' is deprecated. Deprecated in Java"**
+   - May appear in Theme.kt if system UI customization was generated
+   - Android API deprecation for edge-to-edge design
+   - Does not affect functionality; system handles gracefully
+
+These warnings indicate opportunities for future modernization but do not prevent
+the app from building or running. The project is considered successfully
+scaffolded if `./gradlew :app:assembleDebug` exits with status 0 (success).
 
 If you cannot run a build in this environment, say so plainly. Do not call the
 project verified when it has only been generated. At minimum confirm:
